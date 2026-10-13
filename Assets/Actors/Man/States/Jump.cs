@@ -4,8 +4,14 @@ namespace Assets.Actors.Man.States
 {
     public class Jump : ManState
     {
+        private const float MAX_DELAY_FLY = 0.5f;
+
+        private float delayFly = 0f;
+
         public override void Enter(string prevState)
         {
+            delayFly = 0f;
+
             man.velocity.y = man.onFootMoveData.jumpForce;
 
             man.anim.SetUpperLayerWeight(1f);
@@ -28,6 +34,13 @@ namespace Assets.Actors.Man.States
             if (man.velocity.y < 0.2f)
             {
                 man.ChangeState("fall");
+                return;
+            }
+
+            delayFly = man.inputJump ? delayFly + deltaTime : 0f;
+            if (delayFly >= MAX_DELAY_FLY)
+            {
+                man.ChangeState("fly");
             }
         }
 

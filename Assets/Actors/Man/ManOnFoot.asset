@@ -20,3 +20,8 @@ MonoBehaviour:
   gravityScale: 1
   maxFallSpeed: 25
   jumpForce: 5.2
+  flyUpAcceleration: 40
+  flyUpMaxSpeed: 7.5
+  flyDashForce: 13.6
+  maxFlyDashTime: 0.45
+  flyDashCooldown: 0.8

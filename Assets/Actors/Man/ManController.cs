@@ -5,6 +5,7 @@ using Assets.Actors.Man.States;
 public class ManController : MonoBehaviour
 {
     public ManChMovementData onFootMoveData;
+    public ManChMovementData flyMoveData;
 
     public float turnSpeed = 510f;
 
@@ -12,12 +13,14 @@ public class ManController : MonoBehaviour
     public Vector3 inputMotion = Vector3.zero;
     public bool inputJump = false;
     public bool inputAim = false;
+    public bool inputSprint = false;
     public int inputWeaponSlot = -1;
 
     public Vector3 velocity = Vector3.zero;
 
     [HideInInspector] public Vector3 lastMotion;
     [HideInInspector] public Vector3 lookEuler;
+    [HideInInspector] public ManChMovementData curMovementData;
 
     private readonly Dictionary<string, ManState> states = new();
     private ManState curState;
@@ -25,6 +28,8 @@ public class ManController : MonoBehaviour
     private string prevState = "START";
 
     private bool firstUpdate = true;
+
+    private float flyDashCooldown = 0f;
 
     private CharacterController character;
     [HideInInspector] public ManAnim anim;
@@ -34,6 +39,8 @@ public class ManController : MonoBehaviour
         character = GetComponent<CharacterController>();
         anim = GetComponent<ManAnim>();
 
+        curMovementData = onFootMoveData;
+
         lookEuler = new Vector3(0f, transform.eulerAngles.y, 0f);
         lastMotion = transform.forward;
         velocity = Vector3.zero;
@@ -42,6 +49,8 @@ public class ManController : MonoBehaviour
         AddState("run", new Run());
         AddState("jump", new Jump());
         AddState("fall", new Fall());
+        AddState("fly", new Fly());
+        AddState("fly_dash", new FlyDash());
 
         anim.SetMovement(ManAnim.MOVEMENT_ON_FOOT);
         anim.SetWeapon(ManAnim.WEAPON_PISTOL);
@@ -57,6 +66,8 @@ public class ManController : MonoBehaviour
             curState.Enter(prevState);
             prevState = "idle";
         }
+        flyDashCooldown = Mathf.MoveTowards(flyDashCooldown, 0f, Time.deltaTime);
+
         curState.Update(Time.deltaTime);
 
         character.Move(velocity * Time.deltaTime);
@@ -66,7 +77,7 @@ public class ManController : MonoBehaviour
             anim.SetWeapon(inputWeaponSlot);
         }
 
-        anim.SetVelocity(velocity / onFootMoveData.maxSpeed);
+        anim.SetVelocity(velocity / curMovementData.maxSpeed);
     }
 
     private void AddState(string name, ManState state)
@@ -97,10 +108,31 @@ public class ManController : MonoBehaviour
         ApplyMotionV(deltaTime);
     }
 
+    public void MotionFlyGround(float deltaTime)
+    {
+        if (inputMotion == Vector3.zero)
+        {
+            ApplyFriction(deltaTime);
+        }
+        else
+        {
+            ApplyMotionH(deltaTime);
+            lastMotion = inputMotion;
+        }
+        ApplyFlyMotionV(deltaTime);
+    }
+
+    public void MotionLinearH()
+    {
+        Vector3 motion = new Vector3(lastMotion.x, 0f, lastMotion.z).normalized;
+        velocity = motion * curMovementData.flyDashForce;
+    }
+
     private void ApplyFriction(float deltaTime)
     {
         Vector3 vel = new Vector3(velocity.x, 0f, velocity.z);
-        vel = Vector3.MoveTowards(vel, Vector3.zero, onFootMoveData.friction * deltaTime);
+        float friction = character.isGrounded ? curMovementData.friction : curMovementData.airFriction;
+        vel = Vector3.MoveTowards(vel, Vector3.zero, friction * deltaTime);
         velocity = new Vector3(vel.x, velocity.y, vel.z);
     }
 
@@ -108,8 +140,9 @@ public class ManController : MonoBehaviour
     {
         Vector3 motion = new Vector3(inputMotion.x, 0f, inputMotion.z).normalized;
         Vector3 vel = new Vector3(velocity.x, 0f, velocity.z);
-        vel += motion * onFootMoveData.acceleration * deltaTime;
-        vel = Vector3.ClampMagnitude(vel, onFootMoveData.maxSpeed);
+        float acceleration = character.isGrounded ? curMovementData.acceleration : curMovementData.airAcceleration;
+        vel += motion * acceleration * deltaTime;
+        vel = Vector3.ClampMagnitude(vel, curMovementData.maxSpeed);
         velocity = new Vector3(vel.x, velocity.y, vel.z);
     }
 
@@ -120,8 +153,31 @@ public class ManController : MonoBehaviour
             velocity.y = -3.7f;
             return;
         }
-        velocity.y += Physics.gravity.y * onFootMoveData.gravityScale * deltaTime;
-        velocity.y = Mathf.Max(velocity.y, -onFootMoveData.maxFallSpeed);
+        velocity.y += Physics.gravity.y * curMovementData.gravityScale * deltaTime;
+        velocity.y = Mathf.Max(velocity.y, -curMovementData.maxFallSpeed);
+    }
+
+    private void ApplyFlyMotionV(float deltaTime)
+    {
+        if (character.isGrounded)
+        {
+            velocity.y = -3.7f;
+            if (inputJump)
+            {
+                velocity.y = curMovementData.jumpForce;
+            }
+            return;
+        }
+        else
+        {
+            if (inputJump)
+            {
+                velocity.y = Mathf.MoveTowards(velocity.y, curMovementData.flyUpMaxSpeed, curMovementData.flyUpAcceleration * deltaTime);
+                return;
+            }
+        }
+        velocity.y += Physics.gravity.y * curMovementData.gravityScale * deltaTime;
+        velocity.y = Mathf.Max(velocity.y, -curMovementData.maxFallSpeed);
     }
 
     public void TurnTowardLastMotion(float deltaTime)
@@ -135,7 +191,7 @@ public class ManController : MonoBehaviour
     public void TurnTowardLook(float deltaTime)
     {
         transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0f, lookEuler.y, 0f), turnSpeed * deltaTime);
-
+        //anim.SetEulerX(Mathf.DeltaAngle(0f, lookEuler.x));
         anim.SetEulerX(lookEuler.x);
     }
 
@@ -147,5 +203,15 @@ public class ManController : MonoBehaviour
     public bool IsGrounded()
     {
         return character.isGrounded;
+    }
+
+    public bool RequestFlyDash()
+    {
+        if (flyDashCooldown > 0)
+        {
+            return false;
+        }
+        flyDashCooldown = curMovementData.flyDashCooldown;
+        return true;
     }
 }

@@ -11,4 +11,11 @@ public class ManChMovementData : ScriptableObject
     public float gravityScale = 1f;
     public float maxFallSpeed = 25f;
     public float jumpForce = 5.2f;
+
+    [Header("Flying")]
+    public float flyUpAcceleration = 40f;
+    public float flyUpMaxSpeed = 7.5f;
+    public float flyDashForce = 13.6f;
+    public float maxFlyDashTime = 0.45f;
+    public float flyDashCooldown = 0.8f;
 }
