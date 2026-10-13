@@ -16,6 +16,7 @@ public class ManPlayerInput : MonoBehaviour
     private InputAction playerLook;
     private InputAction playerJump;
     private InputAction playerAim;
+    private InputAction[] playerWeaponSlot = new InputAction[3];
 
     private ManController manController;
 
@@ -35,6 +36,9 @@ public class ManPlayerInput : MonoBehaviour
         playerLook = playerActions.FindAction("Look");
         playerJump = playerActions.FindAction("Jump");
         playerAim = playerActions.FindAction("Aim");
+        playerWeaponSlot[0] = playerActions.FindAction("WeaponSlot0");
+        playerWeaponSlot[1] = playerActions.FindAction("WeaponSlot1");
+        playerWeaponSlot[2] = playerActions.FindAction("WeaponSlot2");
 
         manController = man.GetComponent<ManController>();
 
@@ -48,6 +52,8 @@ public class ManPlayerInput : MonoBehaviour
 
         manController.inputJump = playerJump.IsPressed();
         manController.inputAim = playerAim.IsPressed();
+
+        HandleWeaponSlot();
     }
 
     private void LateUpdate()
@@ -68,5 +74,18 @@ public class ManPlayerInput : MonoBehaviour
         manController.lookEuler.x += look.y * mouseSensitivityY * (mouseInvertedY ? 1f : -1f);
         manController.lookEuler.x = Mathf.Clamp(manController.lookEuler.x, -86f, 86f);
         manController.lookEuler.y += look.x * mouseSensitivityX * (mouseInvertedX ? -1f : 1f);
+    }
+
+    private void HandleWeaponSlot()
+    {
+        for (int i = 0; i < playerWeaponSlot.Length; i++)
+        {
+            if (playerWeaponSlot[i].IsPressed())
+            {
+                manController.inputWeaponSlot = i;
+                return;
+            }
+        }
+        manController.inputWeaponSlot = -1;
     }
 }

@@ -16,7 +16,12 @@ public class ManAnim : MonoBehaviour
     public const int MOVEMENT_FLY_GROUND = 1;
     public const int MOVEMENT_FLY = 2;
 
+    public const float LAYER_WEIGHT_MOVE_SPEED = 2f;
+
     public Animator animator;
+
+    private float upperBodyLayerWeightTarget = 0f;
+    private float targetEulerX = 0f;
 
     private int hashState;
     private int hashPistol;
@@ -62,6 +67,11 @@ public class ManAnim : MonoBehaviour
 
         animator.SetFloat(prevHashWeapon, 0f, 0.1f, Time.deltaTime);
         animator.SetFloat(curHashWeapon, 1f, 0.1f, Time.deltaTime);
+
+        animator.SetFloat(hashEulerX, targetEulerX, 0.1f, Time.deltaTime);
+
+        float v = Mathf.MoveTowards(animator.GetLayerWeight(LAYER_UPPER_BODY), upperBodyLayerWeightTarget, LAYER_WEIGHT_MOVE_SPEED * Time.deltaTime);
+        animator.SetLayerWeight(LAYER_UPPER_BODY, v);
     }
 
     public void SetState(int state)
@@ -84,7 +94,7 @@ public class ManAnim : MonoBehaviour
         }
 
         animator.SetFloat(prevHashWeapon, 0f);
-        animator.SetFloat(curHashWeapon, 0f);
+        animator.SetFloat(curHashWeapon, 1f);
 
         prevHashWeapon = curHashWeapon;
         curHashWeapon = newHash;
@@ -93,14 +103,38 @@ public class ManAnim : MonoBehaviour
         animator.SetFloat(curHashWeapon, 0f);
     }
 
-    public void SetLayer(int layer, float weight)
+    public void SetMovement(int movement)
     {
-        animator.SetLayerWeight(layer, weight);
+        int newHash = movement switch
+        {
+            MOVEMENT_ON_FOOT => hashOnFoot,
+            MOVEMENT_FLY_GROUND => hashFlyGround,
+            _ => hashFly,
+        };
+
+        if (newHash == curHashMovement)
+        {
+            return;
+        }
+
+        animator.SetFloat(prevHashMovement, 0f);
+        animator.SetFloat(curHashWeapon, 1f);
+
+        prevHashMovement = curHashMovement;
+        curHashMovement = newHash;
+
+        animator.SetFloat(prevHashMovement, 1f);
+        animator.SetFloat(curHashMovement, 0f);
+    }
+
+    public void SetUpperLayerWeight(float weight)
+    {
+        upperBodyLayerWeightTarget = weight;
     }
 
     public void SetEulerX(float x)
     {
-        animator.SetFloat(hashEulerX, x);
+        targetEulerX = x;
     }
 
     public void SetVelocity(Vector3 velocity)
