@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 761c7eccb7c6e0840bd04e47ae3bb7cf, type: 3}
+  m_Name: ManOnFoot
+  m_EditorClassIdentifier: Assembly-CSharp::ManChMovementData
+  acceleration: 60
+  airAcceleration: 22
+  maxSpeed: 3.7
+  friction: 17
+  airFriction: 3
+  gravityScale: 1
+  maxFallSpeed: 25
+  jumpForce: 5.2
