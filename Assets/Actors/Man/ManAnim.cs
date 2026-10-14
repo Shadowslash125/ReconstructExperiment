@@ -17,7 +17,7 @@ public class ManAnim : MonoBehaviour
     public const int MOVEMENT_FLY = 2;
 
     public const float LAYER_WEIGHT_MOVE_SPEED = 2f;
-    public const float LOOK_SPEED_DEG = 60f;
+    public const float LOOK_SPEED_DEG = 250f;
 
     public Animator animator;
 

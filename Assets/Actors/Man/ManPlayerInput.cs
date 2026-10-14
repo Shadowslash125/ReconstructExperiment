@@ -16,6 +16,7 @@ public class ManPlayerInput : MonoBehaviour
     public bool mouseInvertedX = false;
     public bool mouseInvertedY = false;
 
+    public bool allowLockOn = false;
     public LayerMask lockableTarget;
 
     private InputAction playerMove;
@@ -62,19 +63,9 @@ public class ManPlayerInput : MonoBehaviour
 
     private void Update()
     {
-        if (playerAim.IsPressed())
-        {
-            lockedTarget = GetMostCenteredViewObject();
-        }
-        if (lockedTarget)
-        {
-            if (Vector3.Distance(cam.position, lockedTarget.position) > LOCK_ON_DETECTOR_RADIUS)
-            {
-                lockedTarget = null;
-            }
-        }
         HandleMotion();
         HandleLook();
+        HandleTargetLock();
 
         manController.inputJump = playerJump.IsPressed();
         manController.inputSprint = playerSprint.IsPressed();
@@ -139,6 +130,26 @@ public class ManPlayerInput : MonoBehaviour
     {
         Quaternion q2 = Quaternion.Euler(lookEuler);
         transform.rotation = Quaternion.Lerp(transform.rotation, q2, 0.05f);
+    }
+
+    private void HandleTargetLock()
+    {
+        if (!allowLockOn)
+        {
+            return;
+        }
+
+        if (playerAim.IsPressed())
+        {
+            lockedTarget = GetMostCenteredViewObject();
+        }
+        if (lockedTarget)
+        {
+            if (Vector3.Distance(cam.position, lockedTarget.position) > LOCK_ON_DETECTOR_RADIUS)
+            {
+                lockedTarget = null;
+            }
+        }
     }
 
     private Vector3 lookEulerDelta(Vector3 euler)
