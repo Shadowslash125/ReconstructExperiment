@@ -17,6 +17,7 @@ public class ManAnim : MonoBehaviour
     public const int MOVEMENT_FLY = 2;
 
     public const float LAYER_WEIGHT_MOVE_SPEED = 2f;
+    public const float LOOK_SPEED_DEG = 60f;
 
     public Animator animator;
 
@@ -68,7 +69,8 @@ public class ManAnim : MonoBehaviour
         animator.SetFloat(prevHashWeapon, 0f, 0.1f, Time.deltaTime);
         animator.SetFloat(curHashWeapon, 1f, 0.1f, Time.deltaTime);
 
-        animator.SetFloat(hashEulerX, targetEulerX, 0.1f, Time.deltaTime);
+        float eulerX = Mathf.MoveTowardsAngle(animator.GetFloat(hashEulerX), targetEulerX, LOOK_SPEED_DEG * Time.deltaTime);
+        animator.SetFloat(hashEulerX, eulerX);
 
         float v = Mathf.MoveTowards(animator.GetLayerWeight(LAYER_UPPER_BODY), upperBodyLayerWeightTarget, LAYER_WEIGHT_MOVE_SPEED * Time.deltaTime);
         animator.SetLayerWeight(LAYER_UPPER_BODY, v);
