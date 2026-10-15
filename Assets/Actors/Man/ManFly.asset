@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ManChMovementData
   acceleration: 60
   airAcceleration: 29.7
-  maxSpeed: 10.09
+  maxSpeed: 7.54
   friction: 16.7
   airFriction: 4.42
   gravityScale: 0.88
